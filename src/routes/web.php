@@ -22,6 +22,21 @@ Route::get('login', function () {
     return view('login');
 });
 
+//Dashboard
+Route::get('dashboard',  function () {
+    return view('pages.dashboard.dashboard');
+})->middleware('auth');
+
 //Produtos
 Route::resource('product', 'ProductController');
 
+//other routes here
+Route::get('/logout', 'Auth\LogoutController@logout');
+
+Auth::routes(['register' => false]);
+
+
+//Route::get('logout', 'Auth\LoginController@logout')
+
+
+Route::get('/home', 'HomeController@index')->name('home');

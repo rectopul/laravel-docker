@@ -1,5 +1,6 @@
 function update(callback) {
    var element = document.querySelector('.barload')
+   let form = document.querySelector('.formLogin')
    var width = 1
    var identity = setInterval(scene, 7)
    function scene() {
@@ -7,6 +8,7 @@ function update(callback) {
       if (width >= 100) {
          clearInterval(identity)
          element.style.width = 0 + '%'
+         form.submit()
       } else {
          width++
          element.style.width = width + '%'
@@ -31,7 +33,9 @@ const getUser = () => {
       })
 }
 
-btnLogin.addEventListener('click', e => {
-   e.preventDefault()
-   update(getUser)
-})
+if (btnLogin) {
+   btnLogin.addEventListener('click', e => {
+      e.preventDefault()
+      update(getUser)
+   })
+}

@@ -15,7 +15,9 @@ const getUser = () => {
       })
 }
 
-btnLogin.addEventListener('click', e => {
-   e.preventDefault()
-   update(getUser)
-})
+if (btnLogin) {
+   btnLogin.addEventListener('click', e => {
+      e.preventDefault()
+      update(getUser)
+   })
+}
