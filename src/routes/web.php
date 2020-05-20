@@ -15,6 +15,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/test', function () {
-    return 'Docker Works!';
+//Usuários
+Route::resource('user', 'Admin\UserController');
+//Login
+Route::get('login', function () {
+    return view('login');
 });
+
+//Produtos
+Route::resource('product', 'ProductController');
+
