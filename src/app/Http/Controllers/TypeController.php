@@ -14,7 +14,9 @@ class TypeController extends Controller
      */
     public function index()
     {
-        //
+        $type = Type::all();
+
+        return response()->json($type);
     }
 
     /**
@@ -53,7 +55,11 @@ class TypeController extends Controller
      */
     public function show($id)
     {
-        //
+
+        if ($id) {
+            $type = Type::find($id);
+            return response()->json($type->getRelations());
+        }
     }
 
     /**
@@ -87,6 +93,7 @@ class TypeController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $res = Type::where('id', $id)->delete();
+        return response()->json($res);
     }
 }

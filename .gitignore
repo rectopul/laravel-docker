@@ -1,7 +1,7 @@
 /src/node_modules
 /src/public/hot
 /src/public/storage
-/mysql/*
+mysql
 /storage/*.key
 /vendor
 .env

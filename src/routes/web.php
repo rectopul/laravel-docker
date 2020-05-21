@@ -23,9 +23,7 @@ Route::get('login', function () {
 });
 
 //Dashboard
-Route::get('dashboard',  function () {
-    return view('pages.dashboard.dashboard');
-})->middleware('auth');
+Route::get('dashboard', 'DashboardController@index')->middleware('auth');
 
 //Produtos
 Route::resource('product', 'ProductController');

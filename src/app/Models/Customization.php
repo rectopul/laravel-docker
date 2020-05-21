@@ -10,14 +10,14 @@ class Customization extends Model
 
     public function type()
     {        
-        return $this->belongsTo('App\Dish\Models\Type');
+        return $this->belongsTo('App\Models\Type');
     }
     public function products()
     {        
-        return $this->hasMany('App\Dish\Models\ProductCustomization');
+        return $this->hasMany('App\Models\ProductCustomization');
     }
     public function options()
     {        
-        return $this->hasMany('App\Dish\Models\Option');
+        return $this->hasMany('App\Models\Option');
     }
 }

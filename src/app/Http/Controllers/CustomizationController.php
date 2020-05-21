@@ -14,7 +14,14 @@ class CustomizationController extends Controller
      */
     public function index()
     {
-        //
+        $custom = Customization::with('type')->get();
+
+
+        if ($custom) {
+            return response()->json($custom);
+        }
+
+        return response()->json('', 200);
     }
 
     /**
@@ -48,7 +55,14 @@ class CustomizationController extends Controller
      */
     public function show($id)
     {
-        //
+        $custom = Customization::where('id', $id)->with('type')->first();
+
+
+        if ($custom) {
+            return response()->json($custom);
+        }
+
+        return response()->json('', 200);
     }
 
     /**

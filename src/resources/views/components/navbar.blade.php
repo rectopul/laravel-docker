@@ -1,8 +1,4 @@
-@extends('pages.dashboard.dashboard')
 
-
-@section('nav')
-    @parent
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="#">
@@ -22,4 +18,3 @@
             </ul>
         </div>
     </nav> <!-- navbar // -->
-@endsection

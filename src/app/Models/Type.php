@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Customization;
 use Illuminate\Database\Eloquent\Model;
 
 class Type extends Model
@@ -10,6 +11,6 @@ class Type extends Model
 
     public function customization()
     {        
-        return $this->hasMany('App\Dish\Models\Customization');
+        return $this->hasMany('App\Models\Customization');
     }
 }

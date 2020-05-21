@@ -4,14 +4,17 @@
 <!--Content-->
 @section('content')
 <!-- Just an image -->
-@yield('nav', View::make('components.navbar'))
+@include('components.modalType', ['types' => $types])
+@include('components.navbar')
+
+
 <div class="row justify-content-center mt-5">
     @yield('sidebar', View::make('components.sidebar'))
 
-    <div class="col-9">
+    <div class="col-9 pl-5">
         <div class="tab-content" id="v-pills-tabContent">
             <div class="tab-pane fade show active" id="v-pills-customization" role="tabpanel" aria-labelledby="v-pills-customization-tab">
-                Personalização.
+                @yield('custom', View::make('components.customform'))
             </div> <!-- Personalização.// -->
 
             <div class="tab-pane fade" id="v-pills-product" role="tabpanel" aria-labelledby="v-pills-product-tab">
@@ -23,7 +26,7 @@
             </div> <!-- Buscar personalização.// -->
 
             <div class="tab-pane fade" id="v-pills-searchProduct" role="tabpanel" aria-labelledby="v-pills-searchProduct-tab">
-                Buscar produto
+                @include('components.searchProduct')
             </div> <!-- Buscar produto.// -->
 
             <div class="tab-pane fade" id="v-pills-users" role="tabpanel" aria-labelledby="v-pills-users-tab">
