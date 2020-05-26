@@ -79,7 +79,7 @@ const updateOption = () => {
 
    update(1)
 
-   fetch(`http://localhost/api/${optionResource}/${id}`, {
+   fetch(`${URL}/api/${optionResource}/${id}`, {
       method: 'PUT',
       headers: {
          'content-type': 'application/json',
@@ -156,7 +156,7 @@ const deleteOption = element => {
    const id = element.dataset.id
    //return console.log(element.closest('.option'))
    update(1)
-   fetch(`http://localhost/api/${optionResource}/${id}`, {
+   fetch(`${URL}/api/${optionResource}/${id}`, {
       method: 'DELETE',
       headers: {
          'content-type': 'application/json',
@@ -180,7 +180,7 @@ const clickRemoveOption = element => {
 const showOptions = id => {
    //Request
    update(1, `dark`)
-   fetch(`http://localhost/api/${optionResource}?custom=${id}`)
+   fetch(`${URL}/api/${optionResource}?custom=${id}`)
       .then(response => response.json())
       .then(res => {
          update(() => {
@@ -285,7 +285,7 @@ const InsertOption = id => {
 
    //Request
    update(1)
-   fetch(`http://localhost/api/${optionResource}`, {
+   fetch(`${URL}/api/${optionResource}`, {
       method: 'POST',
       headers: {
          'content-type': 'application/json',
@@ -305,12 +305,12 @@ const InsertOption = id => {
                                     ${res.name} 
                                 </div>
                                 <div class="col-6 ml-auto">
-                                    <button class="btn btn-primary btn-sm editOption" data-id="${res.id}" type="submit">
+                                    <button class="btn btn-primary btn-sm editOption" data-dismiss="modal" data-id="${res.id}" type="submit">
                                        <i class="fas fa-edit"></i>
                                     </button>
-
+                                 
                                     <button class="btn btn-danger btn-sm" data-id="${res.id}" type="submit">
-                                        <i class="far fa-trash-alt"></i>
+                                          <i class="far fa-trash-alt"></i>
                                     </button>
                                 </div>
                             </div>
