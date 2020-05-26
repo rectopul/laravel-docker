@@ -16,8 +16,8 @@ class CreateCustomizationsTable extends Migration
     {
         Schema::create('customizations', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('type_id');
-            $table->foreign('type_id')->references('id')->on('types')->onDelete('cascade');
+            $table->unsignedBigInteger('type_id')->unsigned()->nullable();
+            $table->foreign('type_id')->references('id')->on('types')->onDelete('set null');
             $table->string('name');
             $table->text('description');
             $table->timestamps();

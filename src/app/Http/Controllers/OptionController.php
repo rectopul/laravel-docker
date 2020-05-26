@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customization;
+use App\Models\Option;
 use Illuminate\Http\Request;
 
 class OptionController extends Controller
@@ -11,9 +13,19 @@ class OptionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $custonId = $request->query('custom');
+        if ($custonId) {
+            $custom = Customization::where('id', $custonId)->with('options')->first();
+            //$options = Option::get();
+
+            return response()->json($custom);
+        }
+
+        $options = Option::get();
+
+        return response()->json($options);
     }
 
     /**
@@ -32,9 +44,19 @@ class OptionController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request, $id)
+    public function store(Request $request)
     {
-        //
+        //Create new type
+        $option = new Option;
+
+        $option->customization_id = $request->input('customization_id');
+        $option->name = $request->input('name');
+        $option->image = $request->input('image');
+        $option->price = $request->input('price');
+
+        $option->save();
+
+        return response()->json($option);
     }
 
     /**
@@ -56,7 +78,9 @@ class OptionController extends Controller
      */
     public function edit($id)
     {
-        //
+        $option = Option::find($id);
+
+        return response()->json($option);
     }
 
     /**
@@ -68,7 +92,13 @@ class OptionController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $option = Option::find($id);
+
+        $option->name = $request->input('name');
+        $option->image = $request->input('image');
+        $option->price = $request->input('price');
+
+        $option->save();
     }
 
     /**
@@ -79,6 +109,7 @@ class OptionController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $res = Option::where('id', $id)->delete();
+        return response()->json($res);
     }
 }

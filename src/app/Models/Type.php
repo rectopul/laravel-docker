@@ -10,7 +10,7 @@ class Type extends Model
     protected $fillable = ['name'];
 
     public function customization()
-    {        
-        return $this->hasMany('App\Models\Customization');
+    {
+        return $this->hasMany(Customization::class, $foreignKey = 'type_id', $localKey = 'id');
     }
 }

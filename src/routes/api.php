@@ -19,6 +19,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 //customizations
 Route::resource('custon', 'CustomizationController');
+//Options
+Route::resource('option', 'OptionController');
 
 
 //types of customization

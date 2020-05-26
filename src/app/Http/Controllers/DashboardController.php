@@ -14,8 +14,21 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
+        //Customizations
+        $customizations = Customization::all();
+        $customizationsCount = $customizations->count();
+
+        //Types
         $types = Type::all();
+        $count = $types->count();
+
+        $customTypes = Type::get();
+
+        foreach ($customTypes as $customType) {
+            $customType->setRelation('customization', $customType->customization()->paginate(10));
+        }
+
         //dd($types);
-        return view('pages.dashboard.dashboard', compact('types'));
+        return view('pages.dashboard.dashboard', compact('types', 'user', 'count', 'customTypes', 'customizationsCount'));
     }
 }

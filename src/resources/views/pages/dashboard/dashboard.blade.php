@@ -5,11 +5,11 @@
 @section('content')
 <!-- Just an image -->
 @include('components.modalType', ['types' => $types])
-@include('components.navbar')
+@include('components.navbar', ['user', $user])
 
 
 <div class="row justify-content-center mt-5">
-    @yield('sidebar', View::make('components.sidebar'))
+    @include('components.sidebar', ['count' => $count, 'customizationsCount' => $customizationsCount])
 
     <div class="col-9 pl-5">
         <div class="tab-content" id="v-pills-tabContent">
@@ -22,7 +22,7 @@
             </div> <!-- Produto.// -->
             
             <div class="tab-pane fade" id="v-pills-searchCustomization" role="tabpanel" aria-labelledby="v-pills-searchCustomization-tab">
-                Buscar personalização
+                @include('components.findCustom', ['customTypes', $customTypes])
             </div> <!-- Buscar personalização.// -->
 
             <div class="tab-pane fade" id="v-pills-searchProduct" role="tabpanel" aria-labelledby="v-pills-searchProduct-tab">

@@ -15,8 +15,8 @@ class CreateOptionsTable extends Migration
     {
         Schema::create('options', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('customization_id');
-            $table->foreign('customization_id')->references('id')->on('customizations')->onDelete('cascade');
+            $table->unsignedBigInteger('customization_id')->unsigned()->nullable();
+            $table->foreign('customization_id')->references('id')->on('customizations')->onDelete('set null');
             $table->string('name');
             $table->string('image');
             $table->double('price', 10, 2);

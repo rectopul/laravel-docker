@@ -15,10 +15,10 @@ class CreateProductCustomizationsTable extends Migration
     {
         Schema::create('product_customizations', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('customization_id');
-            $table->foreign('customization_id')->references('id')->on('customizations')->onDelete('cascade');
-            $table->unsignedBigInteger('product_id');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->unsignedBigInteger('customization_id')->unsigned()->nullable();
+            $table->foreign('customization_id')->references('id')->on('customizations')->onDelete('set null');
+            $table->unsignedBigInteger('product_id')->unsigned()->nullable();
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('set null');
             $table->timestamps();
         });
     }

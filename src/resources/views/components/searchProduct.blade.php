@@ -16,7 +16,7 @@
 </form> <!-- Form Product // -->
 
 <div class="resultProduct row">
-    <div class="col-4 productSearchImage"><img src="..." alt="..." class="img-thumbnail"></div>
+    <div class="col-4 productSearchImage"><img src="" alt="..." class="img-thumbnail"></div>
     <div class="col-8"><h5 class="productSearchTitle"></h5></div>
     <div class="col-12 productSearchDescription">
 

@@ -21,6 +21,7 @@ Route::resource('user', 'Admin\UserController');
 Route::get('login', function () {
     return view('login');
 });
+Route::get('reset', 'Auth\ResetPasswordController@index');
 
 //Dashboard
 Route::get('dashboard', 'DashboardController@index')->middleware('auth');

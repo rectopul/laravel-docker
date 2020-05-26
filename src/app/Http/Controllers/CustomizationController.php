@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customization;
+use App\Models\Type;
 use Illuminate\Http\Request;
 
 class CustomizationController extends Controller
@@ -42,9 +43,14 @@ class CustomizationController extends Controller
      */
     public function store(Request $request)
     {
-        $bodyContent = $request->getContent();
-        //dd($request->input('lastname'));
-        return response()->json($request->getContent());
+        $custom = new Customization;
+        $custom->name = $request->input('name');
+        $custom->description = $request->input('description');
+        $custom->type_id = $request->input('type_id');
+
+        $custom->save();
+
+        return response()->json($custom);
     }
 
     /**

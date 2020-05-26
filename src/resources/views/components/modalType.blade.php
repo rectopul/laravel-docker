@@ -1,6 +1,6 @@
 <!--Modal Tipos de customização --> 
-<div class="modal fade" tabindex="-1" role="dialog" id="types" role="dialog" aria-labelledby="types" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade types" tabindex="-1" role="dialog" id="types" role="dialog" aria-labelledby="types" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Tipos de customização</h5>
@@ -18,8 +18,8 @@
                 <button type="button" class="btn btn-danger del-type" data-delete="#type-{{ $type->id }}">
                   <i class="fas fa-trash-alt"></i>
                 </button>
-                <button type="button" class="btn btn-primary edit-type" data-edit="#type-{{ $type->id }}">
-                  <i class="fas fa-edit"></i>
+                <button type="button" class="btn btn-success select-type" data-dismiss="modal" type-id="{{ $type->id }}" data-select="#type-{{ $type->id }}">
+                  <i class="fas fa-check"></i>
                 </button>
               </div>
             </div>
@@ -29,7 +29,6 @@
           <input type="text" class="typeName" placeholder="Tipo de customização" name="typeName" id="typeName">
           <button type="button" class="btn btn-primary insertType">Novo</button>
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-          <button type="button" class="btn btn-success">Selecionar</button>
         </div>
       </div>
     </div>

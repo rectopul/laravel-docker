@@ -12,9 +12,22 @@ class TypeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        $queryPaginate = $request->query('paginate');
+
+        if ($queryPaginate) {
+            $types = Type::get();
+
+            foreach ($types as $type) {
+                $type->setRelation('customization', $type->customization()->paginate($queryPaginate));
+            }
+
+            return response()->json($types);
+        }
+
         $type = Type::all();
+
 
         return response()->json($type);
     }
