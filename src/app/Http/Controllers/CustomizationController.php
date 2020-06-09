@@ -9,6 +9,26 @@ use Illuminate\Http\Request;
 class CustomizationController extends Controller
 {
     /**
+     * Find or search custom
+     * @return \Illuminate\Http\Response
+     */
+    public function find($find)
+    {
+        $text = $find;
+
+        $custom = Customization::query()
+            ->where('name', 'LIKE', "%{$text}%")
+            ->orWhere('description', 'LIKE', "%{$text}%")->get();
+
+
+        if ($custom) {
+            return response()->json($custom);
+        }
+
+        return response()->json('', 200);
+    }
+
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response

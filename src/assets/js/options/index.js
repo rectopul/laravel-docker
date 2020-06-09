@@ -85,31 +85,42 @@ const updateOption = () => {
          'content-type': 'application/json',
       },
       body: JSON.stringify({ name, image, price }),
-   }).then(response => {
-      update(() => {
-         formOption.querySelector('.saveOption').dataset.editId = ``
+   })
+      .then(response => {
+         update(() => {
+            formOption.querySelector('.saveOption').dataset.editId = ``
 
-         //set form name
-         formOption.querySelector('.optionName').value = ``
+            //set form name
+            formOption.querySelector('.optionName').value = ``
 
-         // set form price
-         formOption.querySelector('.optionImage').value = ``
+            // set form price
+            formOption.querySelector('.optionImage').value = ``
 
-         // set form price
-         formOption.querySelector('.optionPrice').value = ``
+            // set form price
+            formOption.querySelector('.optionPrice').value = ``
 
-         //change card
-         editCard({ id, name, image, price })
+            //change card
+            editCard({ id, name, image, price })
 
-         $('#formOptions').modal('hide')
+            $('#formOptions').modal('hide')
 
-         return $('#formOptions').on('hidden.bs.modal', function(e) {
-            // do something...
-            $('#options').modal('show')
-            $(this).off('hidden.bs.modal')
+            return $('#formOptions').on('hidden.bs.modal', function(e) {
+               // do something...
+               $('#options').modal('show')
+               $(this).off('hidden.bs.modal')
+            })
          })
       })
-   })
+      .catch(err => {
+         console.log(err)
+         return update(() => {
+            Swal.fire({
+               title: `Tivemos um erro de sistema`,
+               icon: 'error',
+               showCloseButton: true,
+            })
+         })
+      })
 }
 
 const clickUpdateOption = button => {
@@ -168,6 +179,16 @@ const deleteOption = element => {
             element.closest('.option').remove()
          })
       })
+      .catch(err => {
+         console.log(err)
+         return update(() => {
+            Swal.fire({
+               title: `Tivemos um erro de sistema`,
+               icon: 'error',
+               showCloseButton: true,
+            })
+         })
+      })
 }
 
 const clickRemoveOption = element => {
@@ -204,7 +225,7 @@ const showOptions = id => {
                const optionPrice = Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(option.price)
                //return console.log(optionPrice)
                let divOption = document.createElement('div')
-               divOption.classList.add('col-4', 'option')
+               divOption.classList.add('col-6', 'col-lg-4', 'option')
                divOption.innerHTML = `
                      <div class="card border-primary mb-3 cardOption" data-id="${option.id}">
                         <div class="card-header">
@@ -240,13 +261,14 @@ const showOptions = id => {
          }, `dark`)
       })
       .catch(err => {
-         Swal.fire({
-            title: `Tivemos um erro de sistema`,
-            icon: 'error',
-            showCloseButton: true,
+         console.log(err)
+         return update(() => {
+            Swal.fire({
+               title: `Tivemos um erro de sistema`,
+               icon: 'error',
+               showCloseButton: true,
+            })
          })
-
-         return console.log(err)
       })
 }
 
@@ -257,7 +279,7 @@ const InsertOption = id => {
 
    const divOption = document.createElement('div')
 
-   divOption.classList.add('col-4', 'option')
+   divOption.classList.add('col-6', 'col-lg-4', 'option')
 
    //validação
    if (!name.value) {
@@ -344,10 +366,12 @@ const InsertOption = id => {
          })
       })
       .catch(err => {
-         Swal.fire({
-            title: `Tivemos um erro de sistema`,
-            icon: 'error',
-            showCloseButton: true,
+         update(() => {
+            Swal.fire({
+               title: `Tivemos um erro de sistema`,
+               icon: 'error',
+               showCloseButton: true,
+            })
          })
 
          return console.log(err)

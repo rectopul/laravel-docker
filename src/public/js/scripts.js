@@ -1,5 +1,5 @@
-const URL = `http://http://woodprime.herokuapp.com/`
-//const URL = `http://localhost`
+const URL = `http://woodprime.herokuapp.com/`
+//const URL = `http://192.168.0.10`
 
 function update(callback, theme) {
    var element = document.querySelector('.barload')
@@ -58,6 +58,25 @@ function update(callback, theme) {
    }
 }
 
+const animateCSS = async (element, animation, prefix = 'animate__') =>
+   // We create a Promise and return it
+   new Promise((resolve, reject) => {
+      const animationName = `${prefix}${animation}`
+      const node = element
+
+      node.classList.add(`${prefix}animated`, animationName)
+
+      // When the animation ends, we clean the classes and resolve the Promise
+      function handleAnimationEnd() {
+         node.classList.remove(`${prefix}animated`, animationName)
+         node.removeEventListener('animationend', handleAnimationEnd)
+
+         resolve('Animation ended')
+      }
+
+      node.addEventListener('animationend', handleAnimationEnd)
+   })
+
 $(document).ready(function() {
    $('.dropdown-toggle').dropdown()
 })
@@ -68,10 +87,11 @@ const custonResource = `custon`
 const createCardCustom = item => {
    const card = document.createElement('div')
 
-   const { id, name, description } = item
+   const { id, name, description, type } = item
 
-   card.classList.add('col-6', `card-custom-${id}`)
+   card.classList.add('col-3', `card-custom-${id}`)
 
+   card.dataset.category = `type-${type}`
    card.dataset.id = id
 
    card.innerHTML = `
@@ -119,7 +139,7 @@ const insertCardCustom = item => {
 
    const card = createCardCustom(item)
 
-   document.querySelector(`.container-type-${type}`).prepend(card)
+   document.querySelector(`.container-types`).prepend(card)
 
    const pillCustoms = document.querySelector('.pillcustoms')
 
@@ -149,6 +169,8 @@ btnInsertCustom.addEventListener('click', e => {
       inputTypeCustom.setCustomValidity('Selecione o tipo de customização')
       return inputTypeCustom.reportValidity()
    }
+
+   console.log('cliquei no custom')
 
    document.querySelector('.loaderInsertCustom').classList.add('show')
 
@@ -193,13 +215,14 @@ btnInsertCustom.addEventListener('click', e => {
          }, `dark`)
       })
       .catch(err => {
-         Swal.fire({
-            title: `Tivemos um erro de sistema`,
-            icon: 'error',
-            showCloseButton: true,
+         console.log(err)
+         return update(() => {
+            Swal.fire({
+               title: `Tivemos um erro de sistema`,
+               icon: 'error',
+               showCloseButton: true,
+            })
          })
-
-         return console.log(err)
       })
 })
 
@@ -226,6 +249,166 @@ openFormOption.addEventListener('click', function(e) {
       $('#options').modal('show')
    })
 })
+
+//SEARCH CUSTOMS
+/**
+ * fetch nos custom
+ */
+const controller = new AbortController()
+const signal = controller.signal
+const indexCustom = () => {
+   fetch(`${URL}/api/${custonResource}`, {
+      method: 'GET',
+      headers: {
+         'content-type': 'application/json',
+      },
+      signal: signal,
+   })
+      .then(response => response.json())
+      .then(res => {
+         update(() => {
+            //Caso retorne vazio
+            if (!res.length) return (document.querySelector('.container-types').innerHTML = `Nenhum registro encontrado`)
+            //limpando dados existentes
+            document.querySelector('.container-types').innerHTML = ``
+            //mappeando
+            res.forEach(custom => {
+               insertCardCustom({
+                  name: custom.name,
+                  description: custom.description,
+                  id: custom.id,
+                  type: custom.type_id,
+               })
+            })
+
+            return console.log(res)
+         }, `dark`)
+      })
+      .catch(error => {
+         // catch the abort if you like
+         if (error.name === 'AbortError') {
+            console.log(`abortado`)
+         }
+      })
+}
+const findCustoms = text => {
+   fetch(`${URL}/api/${custonResource}/search/${text}`, {
+      method: 'GET',
+      headers: {
+         'content-type': 'application/json',
+      },
+      signal: signal,
+   })
+      .then(response => response.json())
+      .then(res => {
+         update(() => {
+            //Caso retorne vazio
+            if (!res.length) return (document.querySelector('.container-types').innerHTML = `Nenhum registro encontrado`)
+            //limpando dados existentes
+            document.querySelector('.container-types').innerHTML = ``
+            //mappeando
+            res.forEach(custom => {
+               insertCardCustom({
+                  name: custom.name,
+                  description: custom.description,
+                  id: custom.id,
+                  type: custom.type_id,
+               })
+            })
+
+            return console.log(res)
+         }, `dark`)
+      })
+      .catch(error => {
+         // catch the abort if you like
+         if (error.name === 'AbortError') {
+            console.log(`abortado`)
+         }
+      })
+}
+const searchCustom = () => {
+   const inputSearch = document.querySelector('.search-custom')
+   const btnSearchCustom = document.querySelector('.customSearchButton')
+   const searchFormCustom = document.querySelector('.formSearchCustom')
+
+   btnSearchCustom.addEventListener('click', function(e) {
+      e.preventDefault()
+      const text = inputSearch.value
+      if (text.length < 3) {
+         update(1, `dark`)
+         return indexCustom(text)
+      }
+
+      if (text.length > 3) {
+         update(1, `dark`)
+         return findCustoms(text)
+      }
+   })
+   searchFormCustom.addEventListener('submit', function(e) {
+      e.preventDefault()
+      const text = inputSearch.value
+      if (text.length > 3) {
+         update(1, `dark`)
+         return findCustoms(text)
+      }
+   })
+}
+
+searchCustom()
+
+//Filtro
+const filter = () => {
+   const buttons = document.querySelectorAll('.filtersCustom > a')
+
+   Array.from(buttons).forEach(el => {
+      el.addEventListener('click', function(e) {
+         e.preventDefault()
+
+         const dataFilter = el.dataset.filter
+
+         //pega todos que não possuem o filtro selecionados
+         const cards = document.querySelectorAll('.container-types > div')
+         const cardshide = document.querySelectorAll(`.container-types > div[data-category="${dataFilter}"]`)
+
+         if (dataFilter == `type-all`) {
+            Array.from(cards).forEach(nofilter => {
+               nofilter.classList.remove('hide')
+            })
+            return Array.from(cards).forEach(nofilter => {
+               return animateCSS(nofilter, 'fadeIn')
+            })
+         }
+
+         let cardsIn = [],
+            cardsOut = []
+
+         Array.from(cards).forEach(nofilter => {
+            const datanofilter = nofilter.dataset.category
+
+            if (datanofilter != dataFilter) {
+               return cardsOut.push(nofilter)
+            }
+
+            return cardsIn.push(nofilter)
+         })
+
+         async function hidecards() {
+            await Array.from(cardsOut).forEach(async card => {
+               return await animateCSS(card, 'bounceOut').then(() => card.classList.add('hide'))
+            })
+
+            await Array.from(cardsIn).forEach(async card => {
+               card.classList.remove('hide')
+               return await animateCSS(card, 'fadeIn')
+            })
+         }
+
+         hidecards()
+      })
+   })
+}
+
+filter()
 
 
 
@@ -316,31 +499,42 @@ const updateOption = () => {
          'content-type': 'application/json',
       },
       body: JSON.stringify({ name, image, price }),
-   }).then(response => {
-      update(() => {
-         formOption.querySelector('.saveOption').dataset.editId = ``
+   })
+      .then(response => {
+         update(() => {
+            formOption.querySelector('.saveOption').dataset.editId = ``
 
-         //set form name
-         formOption.querySelector('.optionName').value = ``
+            //set form name
+            formOption.querySelector('.optionName').value = ``
 
-         // set form price
-         formOption.querySelector('.optionImage').value = ``
+            // set form price
+            formOption.querySelector('.optionImage').value = ``
 
-         // set form price
-         formOption.querySelector('.optionPrice').value = ``
+            // set form price
+            formOption.querySelector('.optionPrice').value = ``
 
-         //change card
-         editCard({ id, name, image, price })
+            //change card
+            editCard({ id, name, image, price })
 
-         $('#formOptions').modal('hide')
+            $('#formOptions').modal('hide')
 
-         return $('#formOptions').on('hidden.bs.modal', function(e) {
-            // do something...
-            $('#options').modal('show')
-            $(this).off('hidden.bs.modal')
+            return $('#formOptions').on('hidden.bs.modal', function(e) {
+               // do something...
+               $('#options').modal('show')
+               $(this).off('hidden.bs.modal')
+            })
          })
       })
-   })
+      .catch(err => {
+         console.log(err)
+         return update(() => {
+            Swal.fire({
+               title: `Tivemos um erro de sistema`,
+               icon: 'error',
+               showCloseButton: true,
+            })
+         })
+      })
 }
 
 const clickUpdateOption = button => {
@@ -399,6 +593,16 @@ const deleteOption = element => {
             element.closest('.option').remove()
          })
       })
+      .catch(err => {
+         console.log(err)
+         return update(() => {
+            Swal.fire({
+               title: `Tivemos um erro de sistema`,
+               icon: 'error',
+               showCloseButton: true,
+            })
+         })
+      })
 }
 
 const clickRemoveOption = element => {
@@ -435,7 +639,7 @@ const showOptions = id => {
                const optionPrice = Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(option.price)
                //return console.log(optionPrice)
                let divOption = document.createElement('div')
-               divOption.classList.add('col-4', 'option')
+               divOption.classList.add('col-6', 'col-lg-4', 'option')
                divOption.innerHTML = `
                      <div class="card border-primary mb-3 cardOption" data-id="${option.id}">
                         <div class="card-header">
@@ -471,13 +675,14 @@ const showOptions = id => {
          }, `dark`)
       })
       .catch(err => {
-         Swal.fire({
-            title: `Tivemos um erro de sistema`,
-            icon: 'error',
-            showCloseButton: true,
+         console.log(err)
+         return update(() => {
+            Swal.fire({
+               title: `Tivemos um erro de sistema`,
+               icon: 'error',
+               showCloseButton: true,
+            })
          })
-
-         return console.log(err)
       })
 }
 
@@ -488,7 +693,7 @@ const InsertOption = id => {
 
    const divOption = document.createElement('div')
 
-   divOption.classList.add('col-4', 'option')
+   divOption.classList.add('col-6', 'col-lg-4', 'option')
 
    //validação
    if (!name.value) {
@@ -575,10 +780,12 @@ const InsertOption = id => {
          })
       })
       .catch(err => {
-         Swal.fire({
-            title: `Tivemos um erro de sistema`,
-            icon: 'error',
-            showCloseButton: true,
+         update(() => {
+            Swal.fire({
+               title: `Tivemos um erro de sistema`,
+               icon: 'error',
+               showCloseButton: true,
+            })
          })
 
          return console.log(err)
@@ -745,8 +952,10 @@ const insertType = input => {
                return update(() => {
                   document.querySelector('.typesContainer').prepend(newType)
 
-                  newType.addEventListener('click', function(e) {
-                     selectType(newType)
+                  newType.querySelector('.select-type').addEventListener('click', e => {
+                     e.preventDefault()
+                     console.log('selecionei')
+                     selectType(newType.querySelector('.select-type'))
                   })
 
                   //insert tab
@@ -796,6 +1005,13 @@ const deleteType = input => {
       })
       .catch(err => {
          console.log(err)
+         update(() => {
+            Swal.fire({
+               title: `Tivemos um erro de sistema`,
+               icon: 'error',
+               showCloseButton: true,
+            })
+         }, `dark`)
       })
 }
 
