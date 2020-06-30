@@ -79,6 +79,7 @@ const animateCSS = async (element, animation, prefix = 'animate__') =>
 
 $(document).ready(function() {
    $('.dropdown-toggle').dropdown()
+   $('[data-toggle="tooltip"]').tooltip()
 })
 
 const btnInsertCustom = document.querySelector('.btn-insert-custom')
@@ -96,9 +97,26 @@ const createCardCustom = item => {
 
    card.innerHTML = `
     <div class="card border-primary mb-3 cardCustom" data-id="${id}">
-        <div class="card-header">${name}</div>
+         <div class="card-header">
+            ${name}
+            <button type="button" 
+               class="btn btn-danger btn-sm btnDeleteCustom" 
+               data-id="${id}"
+            >
+               <i class="fas fa-trash-alt"></i>
+            </button>
+         </div>
         <div class="card-body text-primary">
             <p class="card-text">${description}</p>
+            <button type="button"
+               class="btn btn-primary btnShowOptionsCustom"
+               data-custom="${id}"
+               data-toggle="tooltip"
+               data-placement="top"
+               title="Visualizar opções"
+            >
+               <i class="far fa-eye"></i>
+            </button>
         </div>
     </div>`
 
@@ -109,28 +127,30 @@ const clickCard = item => {
    return item.addEventListener('click', e => {
       // body
       e.preventDefault()
+
+      //open modal
       $('#options').modal('show')
 
       //add loader in body
       document.querySelector('.optionsContainer').innerHTML = `<div class="spinner-border text-primary" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>`
+                     <span class="sr-only">Loading...</span>
+                 </div>`
       //add loader in title modal
       document.querySelector('.modal.options .modal-title').innerHTML = `<div class="spinner-border text-primary" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>`
+                     <span class="sr-only">Loading...</span>
+                 </div>`
       //add loader in title modal form option
       document.querySelector(
          '.modal.formOptions .modal-title'
       ).innerHTML = `<div class="spinner-border text-primary" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>`
+                     <span class="sr-only">Loading...</span>
+                 </div>`
 
       //set the option
-      document.querySelector('.insertOption').dataset.option = item.dataset.id
+      document.querySelector('.insertOption').dataset.option = item.dataset.custom
 
       //load options
-      return showOptions(item.dataset.id)
+      return showOptions(item.dataset.custom)
    })
 }
 
@@ -147,7 +167,9 @@ const insertCardCustom = item => {
 
    pillCustoms.innerHTML = countcustom + 1
 
-   return clickCard(card)
+   $(card.querySelector('.btnShowOptionsCustom')).tooltip()
+
+   return clickCard(card.querySelector('.btnShowOptionsCustom'))
 }
 
 btnInsertCustom.addEventListener('click', e => {
@@ -227,7 +249,7 @@ btnInsertCustom.addEventListener('click', e => {
 })
 
 //Show modal options
-const cardCustom = document.querySelectorAll('.cardCustom')
+const cardCustom = document.querySelectorAll('.btnShowOptionsCustom')
 
 Array.from(cardCustom).forEach(el => {
    clickCard(el)
@@ -272,16 +294,16 @@ const indexCustom = () => {
             //limpando dados existentes
             document.querySelector('.container-types').innerHTML = ``
             //mappeando
-            res.forEach(custom => {
-               insertCardCustom({
-                  name: custom.name,
-                  description: custom.description,
-                  id: custom.id,
-                  type: custom.type_id,
-               })
+            return res.forEach(custom => {
+               if (custom.type_id) {
+                  return insertCardCustom({
+                     name: custom.name,
+                     description: custom.description,
+                     id: custom.id,
+                     type: custom.type_id,
+                  })
+               }
             })
-
-            return console.log(res)
          }, `dark`)
       })
       .catch(error => {
@@ -307,7 +329,7 @@ const findCustoms = text => {
             //limpando dados existentes
             document.querySelector('.container-types').innerHTML = ``
             //mappeando
-            res.forEach(custom => {
+            return res.forEach(custom => {
                insertCardCustom({
                   name: custom.name,
                   description: custom.description,
@@ -315,8 +337,6 @@ const findCustoms = text => {
                   type: custom.type_id,
                })
             })
-
-            return console.log(res)
          }, `dark`)
       })
       .catch(error => {
@@ -410,7 +430,226 @@ const filter = () => {
 
 filter()
 
+//DELETE CUSTOM
+//request Delete Custom
+const requestDestroyCustom = id => {
+   return new Promise((resolve, reject) => {
+      update(1, `dark`)
+      fetch(`${URL}/api/${custonResource}/${id}`, {
+         method: 'DELETE',
+         headers: {
+            'content-type': 'application/json',
+         },
+      })
+         .then(response => response.json())
+         .then(res => {
+            update(2, `dark`)
+            if (res === 0) return reject(`Customização não existe`)
 
+            return resolve(`Customização excluida com sucesso!`)
+         })
+         .catch(erro => {
+            return reject(`Erro ao excluir customização`)
+         })
+   })
+}
+//btnDeleteCustom
+const destroyCustom = btn => {
+   btn.addEventListener('click', e => {
+      e.preventDefault()
+
+      const id = btn.dataset.id
+
+      return requestDestroyCustom(id)
+         .then(response => {
+            return update(() => {
+               btn.closest('.col-3').remove()
+               return Swal.fire({
+                  title: response,
+                  icon: 'success',
+                  showCloseButton: true,
+               })
+            }, `dark`)
+         })
+         .catch(error => {
+            return update(() => {
+               Swal.fire({
+                  title: error,
+                  icon: 'error',
+                  showCloseButton: true,
+               })
+            }, `dark`)
+         })
+   })
+}
+
+const btnDestroyCustom = document.querySelectorAll('.btnDeleteCustom')
+
+Array.from(btnDestroyCustom).forEach(btn => {
+   return destroyCustom(btn)
+})
+
+const insertUser = object => {
+   return new Promise((resolve, reject) => {
+      const { name, email, password } = object
+
+      update(1, `dark`)
+
+      fetch(`${URL}/api/user`, {
+         method: 'POST',
+         headers: {
+            'content-type': 'application/json',
+         },
+         body: JSON.stringify({ name, email, password }),
+      })
+         .then(response => response.json())
+         .then(res => {
+            if (res.error) return reject(`Erro ao inserir novo usuário`)
+            update(2, `dark`)
+            return resolve(res)
+         })
+         .catch(error => {
+            return reject(error)
+         })
+   })
+}
+
+const formNewUser = button => {
+   button.addEventListener('click', e => {
+      e.preventDefault()
+
+      const inputName = document.querySelector('.newUserName')
+      const inputEmail = document.querySelector('.newUserMail')
+      const inputPassword = document.querySelector('.newUserPassword')
+
+      const name = inputName.value
+      const email = inputEmail.value
+      const password = inputPassword.value
+
+      console.log({ name, email, password })
+
+      if (!name) {
+         inputName.setCustomValidity('Informe o nome do usuário')
+         return inputName.reportValidity()
+      }
+      if (!email) {
+         inputEmail.setCustomValidity('Informe o e-mail do usuário')
+         return inputEmail.reportValidity()
+      }
+      if (!password) {
+         inputPassword.setCustomValidity('Informe uma senha para o usuário')
+         return inputPassword.reportValidity()
+      }
+
+      insertUser({ name, email, password })
+         .then(user => {
+            const { success } = user
+
+            return update(() => {
+               //insert user and button
+               //listUserInSistem
+               const newUser = document.createElement('tr')
+
+               newUser.innerHTML = `
+                <th scope="row">${success.id}</th>
+                <td>${success.name}</td>
+                <td>${success.email}</td>
+                <td class="td-actions text-right">
+                    <button type="button" class="btn btn-danger btnRemoveUser" data-id="${success.id}">
+                        <i class="far fa-trash-alt" aria-hidden="true"></i> Excluir
+                    </button>
+                </td>
+                `
+
+               document.querySelector('.listUserInSistem').append(newUser)
+
+               clickToDestroyUser(newUser.querySelector('.btnRemoveUser'))
+
+               $('#newUser').modal('hide')
+
+               return $('#newUser').on('hidden.bs.modal', function(e) {
+                  // do something...
+                  Swal.fire({
+                     title: `Usuário ${success.name} criado com sucesso!`,
+                     icon: 'success',
+                     showCloseButton: true,
+                  })
+
+                  return document.querySelector('.modal-backdrop').remove()
+               })
+            }, `dark`)
+         })
+         .catch(error => {
+            update(() => {
+               return Swal.fire({
+                  title: error,
+                  icon: 'error',
+                  showCloseButton: true,
+               })
+            }, `dark`)
+         })
+   })
+}
+
+const formInsertNewUser = document.querySelector('.btnInsertNewUser')
+
+formNewUser(formInsertNewUser)
+
+//Destroy user
+const destroyUser = id => {
+   return new Promise((resolve, reject) => {
+      update(1, `dark`)
+
+      fetch(`${URL}/api/user/${id}`, {
+         method: 'DELETE',
+         headers: {
+            'content-type': 'application/json',
+         },
+      })
+         .then(response => response.json())
+         .then(res => {
+            if (res.error) return reject(`Erro ao inserir novo usuário`)
+            update(2, `dark`)
+            return resolve(res)
+         })
+         .catch(error => {
+            return reject(error)
+         })
+   })
+}
+
+const clickToDestroyUser = btn => {
+   btn.addEventListener('click', function(e) {
+      const id = btn.dataset.id
+
+      return destroyUser(id)
+         .then(() => {
+            btn.closest('tr').remove()
+            return update(() => {
+               Swal.fire({
+                  title: `Usuário deletado com sucesso!`,
+                  icon: 'success',
+                  showCloseButton: true,
+               })
+            }, `dark`)
+         })
+         .catch(error => {
+            return update(() => {
+               Swal.fire({
+                  title: `Erro ao deletar usuário!`,
+                  icon: 'error',
+                  showCloseButton: true,
+               })
+            }, `dark`)
+         })
+   })
+}
+
+const btnsRemoveUser = document.querySelectorAll('.btnRemoveUser')
+
+Array.from(btnsRemoveUser).forEach(btn => {
+   return clickToDestroyUser(btn)
+})
 
 const optionResource = `option`
 
@@ -805,34 +1044,238 @@ btnSaveOption.addEventListener('click', e => {
 const vtexAccountName = `woodprime`
 const vtexEnvironment = `vtexcommercestable`
 
-const getVtexProduct = skuProduct => {
-   if (!skuProduct.value) return alert('Informe o sku do produto')
-   const sku = skuProduct.value
+const createProductBySearch = object => {
+   return new Promise((resolve, reject) => {
+      const { name, code, image, options, id } = object
 
-   var myHeaders = new Headers({
-      Host: '*',
+      const div = document.createElement('div')
+
+      let productOptions = ``
+      if (options.length) {
+         options.forEach(opt => {
+            const { id, option } = opt
+
+            productOptions += `
+            <tr class="text-left optionProduct">
+               <th scope="row" class="px-1 productOptionName">
+                  ${option.name} (${option.customization.name})
+               </th>
+               
+               <td>${option.price}</td>
+               <td class="text-right px-1 productRemoveO\ption">
+                  <a href="#" data-id="${id}">
+                  <i class="fas fa-trash-alt"></i>
+                  </a>
+               </td>
+            </tr>
+            `
+         })
+      }
+
+      div.classList.add('col-4', 'productItem', 'my-2')
+
+      div.innerHTML = `
+      <div class="card border-primary mb-3 cardProduct item" data-id="${id}">
+         <div class="card-header text-center searchProductName">
+            ${name}
+            <button type="button" class="btn btn-danger btn-sm productDestroy" data-id="${id}">
+               <i class="fas fa-trash-alt"></i>
+            </button>
+         </div>
+   
+         <div class="card-body text-primary searchProductOptionsBody text-center px-1">
+            <table class="table table-hover searchProductOptions mb-0">
+               <thead>
+                  <tr>
+                     <th scope="col" class="text-left px-1">Option</th>
+                     <th scope="col">Preço</th>
+                     <th scope="col" class="text-right px-1">Action</th>
+                  </tr>
+               </thead>
+   
+               <tbody> ${productOptions} </tbody>
+            </table>
+            <!-- TABLE // -->
+         </div>
+      </div>
+      `
+
+      //remove option
+      const linkRemoveOption = div.querySelectorAll('.productRemoveOption > a')
+
+      Array.from(linkRemoveOption).forEach(link => {
+         actionRemoveOption(link)
+      })
+
+      //remove product
+      const btnsDestroyProduct = div.querySelector('.productDestroy')
+
+      clickDestroyProduct(btnsDestroyProduct)
+
+      return resolve(div)
    })
+}
 
-   fetch(`https://${vtexAccountName}.${vtexEnvironment}.com.br/api/catalog_system/pvt/sku/stockkeepingunitbyid/skuId${sku}`, {
+const searchProduct = slug => {
+   update(1, `dark`)
+   fetch(`${URL}/api/product_search/${slug}`, {
       method: 'GET',
       headers: {
          'content-type': 'application/json',
-         accept: 'application/json',
       },
    })
-      .then(response => {
-         return response.json()
+      .then(response => response.json())
+      .then(res => {
+         update(() => {
+            return res.forEach(product => {
+               document.querySelector('.listProduct').innerHTML = ``
+               return createProductBySearch(product).then(res => {
+                  return document.querySelector('.listProduct').append(res)
+               })
+            })
+         }, `dark`)
       })
-      .then(data => {
-         console.log(data)
+      .catch(err => {
+         return Swal.fire({
+            title: err,
+            icon: 'error',
+            showCloseButton: true,
+         })
       })
-      .catch(err => console.log(err))
+}
+
+const indexProducts = () => {
+   update(1, `dark`)
+   fetch(`${URL}/api/product`, {
+      method: 'GET',
+      headers: {
+         'content-type': 'application/json',
+      },
+   })
+      .then(response => response.json())
+      .then(res => {
+         update(() => {
+            return res.forEach(product => {
+               document.querySelector('.listProduct').innerHTML = ``
+               return createProductBySearch(product).then(res => {
+                  return document.querySelector('.listProduct').append(res)
+               })
+            })
+         }, `dark`)
+      })
+      .catch(err => {
+         return Swal.fire({
+            title: err,
+            icon: 'error',
+            showCloseButton: true,
+         })
+      })
+}
+
+const btnSearchProductInternal = document.querySelector('.searchProductInternal')
+
+btnSearchProductInternal.addEventListener('click', function(e) {
+   e.preventDefault()
+   const inputParamSearch = document.querySelector('.productParamSearch')
+
+   if (inputParamSearch.value) {
+      return searchProduct(inputParamSearch.value)
+   } else {
+      return indexProducts()
+   }
+})
+
+const internalRequest = id => {
+   return new Promise((resolve, reject) => {
+      fetch(`${URL}/api/${productResource}/${id}`, {
+         method: 'GET',
+         headers: {
+            'content-type': 'application/json',
+         },
+      })
+         .then(response => response.json())
+         .then(res => {
+            if (!res) return reject(`Não há produtos`)
+
+            const { name, code: id, image } = res
+            const retorno = {
+               name,
+               id,
+               image,
+            }
+         })
+   })
+}
+
+const getVtexProduct = skuProduct => {
+   return new Promise((resolve, reject) => {
+      if (!skuProduct.value) return reject('Informe o sku do produto')
+      const sku = skuProduct.value
+      const URLSKU = `https://sistema.moveispracasa.com.br/api/admin/products/${sku}`
+
+      var myHeaders = new Headers({
+         Host: '*',
+      })
+
+      fetch(URLSKU, {
+         method: 'GET',
+         headers: {
+            'content-type': 'application/json',
+            accept: 'application/json',
+         },
+      })
+         .then(response => response.json())
+         .then(data => {
+            const { product } = data
+            if (!product) return reject(`Produto não encontrado`)
+
+            //check ative
+            const { isActiveOnVtex } = product
+
+            if (!isActiveOnVtex) return reject(`Este produto está inativo na Vtex`)
+
+            //vtexData.itemMetadata.items
+            const { product_name, id, productName, productId } = product.vtexData
+
+            let items
+
+            if (product.vtexData.itemMetadata) {
+               items = product.vtexData.itemMetadata.items
+            } else {
+               items = product.vtexData.items
+            }
+
+            if (!items.length) return reject(`Não há itens`)
+
+            const retorno = {
+               name: product_name || productName,
+               id: id || productId,
+            }
+
+            if (items[0] && items[0].MainImage) {
+               const { MainImage } = items[0]
+               retorno.image = MainImage
+            } else {
+               const { images } = items[0]
+
+               if (!images) return reject(`Não há imagem no produto`)
+
+               retorno.image = images[0].imageUrl
+            }
+
+            return resolve(retorno)
+         })
+         .catch(err => reject(err))
+   })
 }
 
 const putValues = object => {
-   const { name, code } = object
+   const { name, code, image } = object
    document.querySelector('.nameProduct').value = name
    document.querySelector('.codeProduct').value = code
+   document.querySelector('.productNameInsert').innerHTML = name
+   document.querySelector('.productCodeInsert b').innerHTML = `Código do produto: ${code}`
+   document.querySelector('.productImageInsert').setAttribute(`src`, image)
 }
 
 const btnSearchProduct = document.querySelector('.btnGetProductVtex')
@@ -840,32 +1283,266 @@ const btnSearchProduct = document.querySelector('.btnGetProductVtex')
 btnSearchProduct.addEventListener('click', e => {
    e.preventDefault()
    let inputSkuProduct = document.querySelector('.skuProduct')
-   //getVtexProduct(inputSkuProduct)
-   return putValues({
-      name: `Produto Teste`,
-      code: `6277`,
-   })
+   getVtexProduct(inputSkuProduct)
+      .then(res => {
+         console.log(res)
+         const { name, id: code, image } = res
+         document.querySelector('.resultProduct').classList.add('full')
+         return putValues({ name, code, image })
+      })
+      .catch(res => {
+         return Swal.fire({
+            title: res,
+            icon: 'error',
+            showCloseButton: true,
+         })
+      })
 })
 
 const productResource = `product`
+let optionsProduct = []
+
+//modal
+$('#modalProductOptions').on('hidden.bs.modal', function(e) {
+   // do something...
+   $('#productCustons').modal('show')
+})
+
+const destroyProductOption = id => {
+   update(1, `dark`)
+   fetch(`${URL}/api/product_option/${id}`, {
+      method: 'DELETE',
+   })
+      .then(response => response.json())
+      .then(res => {
+         update(() => {
+            const optionDelete = document.querySelector(`.productRemoveOption a[data-id="${id}"]`).closest('.optionProduct')
+
+            optionDelete.remove()
+            return Swal.fire({
+               title: `Customização removida com sucesso!`,
+               icon: 'success',
+               showCloseButton: true,
+            })
+         }, `dark`)
+      })
+}
+
+const actionRemoveOption = link => {
+   link.addEventListener('click', e => {
+      e.preventDefault()
+
+      const linkId = link.dataset.id
+
+      destroyProductOption(linkId)
+   })
+}
+
+const linkRemoveOption = document.querySelectorAll('.productRemoveOption > a')
+
+Array.from(linkRemoveOption).forEach(link => {
+   actionRemoveOption(link)
+})
+
+const destroyProduct = id => {
+   update(1, `dark`)
+   fetch(`${URL}/api/product/${id}`, {
+      method: 'DELETE',
+   })
+      .then(response => response.json())
+      .then(res => {
+         update(() => {
+            const productDelete = document.querySelector(`.productDestroy[data-id="${id}"]`).closest('.productItem')
+
+            productDelete.remove()
+            return Swal.fire({
+               title: `Produto excluído com sucesso!`,
+               icon: 'success',
+               showCloseButton: true,
+            })
+         }, `dark`)
+      })
+      .catch(err => {
+         update(() => {
+            return Swal.fire({
+               title: `Erro ao excluir produto!`,
+               icon: 'warning',
+               showCloseButton: true,
+            })
+         }, `dark`)
+      })
+}
+
+const clickDestroyProduct = btn => {
+   btn.addEventListener('click', e => {
+      e.preventDefault()
+      const id = btn.dataset.id
+
+      destroyProduct(id)
+   })
+}
+
+const btnsDestroyProduct = document.querySelectorAll('.productDestroy')
+
+Array.from(btnsDestroyProduct).forEach(btn => {
+   clickDestroyProduct(btn)
+})
+
+const clickOption = option => {
+   option.addEventListener('click', function(e) {
+      // body
+      const name = option.querySelector('.productOptionName').innerHTML
+      const id = option.dataset.id
+      const custom = option.dataset.custom
+      const custom_name = option.dataset.customName
+      const image = option.querySelector('.card-body img').getAttribute('src')
+
+      option.classList.add('active')
+
+      if (!document.querySelector(`.optionsSelected div[data-option="${id}"]`)) {
+         optionInsert({ name, id, custom, custom_name, image })
+
+         return optionsProduct.push(parseInt(id))
+      }
+   })
+}
+
+const optionInsert = object => {
+   const { id, name, custom, custom_name, image } = object
+
+   const div = document.createElement('div')
+
+   div.classList.add('col-3', 'optionSelect')
+   div.dataset.option = id
+
+   div.innerHTML = `<div class="card">
+      <div class="card-header text-center productCustomName" data-custom="${custom}">
+         <button type="button" class="btn btn-danger btn-sm optionSelectDel" data-id="${id}">
+            <i class="fas fa-trash-alt" aria-hidden="true"></i>
+         </button>
+         ${custom_name}
+      </div>
+      <div class="card-body productOptionName text-center">
+         <p>${name}</p>
+         <div class="row">
+            <div class="col-12">
+               <img src="${image}" alt="..." width="100" class="img-thumbnail">
+            </div>
+         </div>
+      </div>
+   </div>`
+
+   //remove
+   const btnDel = div.querySelector(`.optionSelectDel`)
+   btnDel.addEventListener('click', e => {
+      const id = btnDel.dataset.id
+
+      optionsProduct.splice(optionsProduct.indexOf(parseInt(id)), 1)
+
+      return btnDel.closest('.optionSelect').remove()
+   })
+
+   return document.querySelector('.optionsSelected').append(div)
+}
+
+const optionsCreate = object => {
+   const { id, name, image, custom, custom_name } = object
+   const containerOptions = document.querySelector('.modalProductOptionsContainer')
+
+   const option = document.createElement('div')
+
+   option.classList.add('col-3')
+
+   option.dataset.custom = custom
+   option.dataset.customName = custom_name
+   option.dataset.id = id
+
+   option.innerHTML = `
+   <div class="card productOption">
+      <div class="card-header productOptionName">${name}</div>
+      <div class="card-body">
+      <img src="${image}" alt="..." width="150" class="img-thumbnail">
+      </div>
+   </div>
+   `
+
+   clickOption(option)
+
+   return containerOptions.append(option)
+}
+
+const getOptions = custom => {
+   document.querySelector('.modalProductOptionsContainer').innerHTML = `<div class="spinner-border text-primary" role="status">
+   <span class="sr-only">Loading...</span>
+ </div>`
+
+   fetch(`${URL}/api/option?custom=${custom}`, {
+      method: 'GET',
+   })
+      .then(response => response.json())
+      .then(res => {
+         update(() => {
+            const { options } = res
+
+            document.querySelector('.modalProductOptionsContainer').innerHTML = ``
+
+            return options.forEach(option => {
+               return optionsCreate({
+                  id: option.id,
+                  custom: option.customization_id,
+                  custom_name: res.name,
+                  name: option.name,
+                  image: option.image,
+               })
+            })
+         }, `dark`)
+      })
+}
 
 const requestProduct = object => {
-   const { name, code, description, image } = object
+   const { name, code, description, image, options } = object
    update(1, `dark`)
    fetch(`${URL}/api/${productResource}`, {
       method: 'POST',
       headers: {
          'content-type': 'application/json',
       },
-      body: JSON.stringify({ name, code, description, image }),
+      body: JSON.stringify({ name, code, description, image, options }),
    })
       .then(response => response.json())
       .then(res => {
          update(() => {
+            if (res.error)
+               return Swal.fire({
+                  title: res.error,
+                  icon: 'warning',
+                  showCloseButton: true,
+               })
+            //reset Form
+            optionsProduct = []
+            document.querySelector('.nameProduct').value = ``
+            document.querySelector('.codeProduct').value = ``
+            document.querySelector('.descriptionProduct').value = ``
+            document.querySelector('.imageProduct').value = ``
+            document.querySelector('.skuProduct').value = ``
+            document.querySelector('.resultProduct').classList.remove('full')
+
+            //remove as opcoes
+            document.querySelector(`.optionsSelected`).innerHTML = ``
+
             //SweetAlert
             Swal.fire({
                title: `Produto ${res.name} cadastrado`,
                icon: 'success',
+               showCloseButton: true,
+            })
+         }, `dark`)
+      })
+      .catch(err => {
+         update(() => {
+            return Swal.fire({
+               title: `Erro ao inserir novo produto`,
+               icon: 'error',
                showCloseButton: true,
             })
          }, `dark`)
@@ -901,27 +1578,79 @@ const insertProduct = () => {
       return imageProduct.reportValidity()
    }
 
-   return console.log({
+   /* return console.log({
       name: nameProduct.value,
       code: codeProduct.value,
       description: descriptionProduct.value,
       image: imageProduct.value,
-   })
+      options: optionsProduct,
+   }) */
 
-   requestProduct({
+   return requestProduct({
       name: nameProduct.value,
-      code: codeProduct.value,
+      code: parseFloat(codeProduct.value),
       description: descriptionProduct.value,
       image: imageProduct.value,
+      options: optionsProduct,
    })
 }
 
+const clickCustom = option => {
+   option.addEventListener('click', function(e) {
+      e.preventDefault()
+
+      const custom = option.closest('.col-4').dataset.custom
+
+      $('#productCustons').on('hidden.bs.modal', function(e) {
+         // do something...
+         $('#modalProductOptions').modal('show')
+         $(this).off('hidden.bs.modal')
+      })
+
+      $('#modalProductOptions').on('hidden.bs.modal', function(e) {
+         // do something...
+         $('#productCustons').modal('show')
+      })
+
+      return getOptions(custom)
+   })
+}
+
+const customCreate = object => {
+   const { id, name, custom, custom_name } = object
+
+   const div = document.createElement('div')
+
+   div.classList.add('col-3')
+   div.dataset.option = id
+
+   div.innerHTML = `<div class="card">
+      <div class="card-header productCustomName" data-custom="${custom}">${custom_name}</div>
+      <div class="card-body productOptionName">
+      ${name}
+      </div>
+   </div>`
+
+   return document.querySelector('.optionsSelected').append(div)
+}
+
 const buttonInsert = document.querySelector('.insertProduct')
+const modalOptionProduct = document.querySelector('.optionsSelect')
+const productOption = document.querySelectorAll('.productOption .card')
+
+Array.from(productOption).forEach(option => {
+   clickCustom(option)
+})
+
+modalOptionProduct.addEventListener('click', e => {
+   e.preventDefault()
+   $('.productCustons').modal('show')
+})
 
 buttonInsert.addEventListener('click', e => {
    e.preventDefault()
 
-   insertProduct()
+   return insertProduct()
 })
 
 const typeResource = `type`

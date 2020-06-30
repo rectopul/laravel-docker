@@ -79,4 +79,5 @@ const animateCSS = async (element, animation, prefix = 'animate__') =>
 
 $(document).ready(function() {
    $('.dropdown-toggle').dropdown()
+   $('[data-toggle="tooltip"]').tooltip()
 })

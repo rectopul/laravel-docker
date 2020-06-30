@@ -7,6 +7,9 @@
 @include('components.modalType', ['types' => $types])
 @include('components.modalunrelated', ['types' => $types])
 @include('components.navbar', ['user', $user])
+@include('components.productCustons', ['types' => $customTypes])
+@include('components.productOptions')
+@include('components.newUser')
 
 
 <div class="row justify-content-center mt-5">
@@ -27,7 +30,7 @@
             </div> <!-- Buscar personalização.// -->
 
             <div class="tab-pane fade" id="v-pills-searchProduct" role="tabpanel" aria-labelledby="v-pills-searchProduct-tab">
-                @include('components.searchProduct')
+                @include('components.searchProduct', ['products', $products])
             </div> <!-- Buscar produto.// -->
 
             <div class="tab-pane fade" id="v-pills-users" role="tabpanel" aria-labelledby="v-pills-users-tab">

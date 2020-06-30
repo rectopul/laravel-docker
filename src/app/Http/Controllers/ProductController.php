@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductOption;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -12,9 +13,31 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function search($find)
+    {
+        $text = $find;
+
+        $products = Product::query()
+            ->where('name', 'LIKE', "%{$text}%")
+            ->orWhere('description', 'LIKE', "%{$text}%")
+            ->orWhere('code', 'LIKE', "%{$text}%")
+            ->with('options.option.customization')->get();
+
+
+        if ($products) {
+            return response()->json($products);
+        }
+
+        return response()->json('', 200);
+    }
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
-        $products = Product::paginate();
+        $products = Product::with('options.option.customization')->get();
 
         return $products;
     }
@@ -37,12 +60,30 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        $check = Product::where('name', '=', $request->input('name'))->count();
+
+        if ($check > 0) {
+            return response()->json(['error' => 'This product name already exist'], 400);
+        }
+
         $product = new Product;
         $product->name = $request->input('name');
         $product->description = $request->input('description');
         $product->image = $request->input('image');
+        $product->code = $request->input('code');
 
         $product->save();
+
+        $options = $request->input('options');
+
+        foreach ($options as $key => $option) {
+            $productCustomization = new ProductOption;
+            $productCustomization->option_id = $option;
+            $productCustomization->product_id = $product->id;
+
+            //Save Custom
+            $productCustomization->save();
+        }
 
         return response()->json($product);
     }
@@ -89,6 +130,7 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $res = Product::where('id', $id)->delete();
+        return response()->json($res);
     }
 }
