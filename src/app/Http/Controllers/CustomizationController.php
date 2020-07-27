@@ -92,7 +92,9 @@ class CustomizationController extends Controller
 
         $custom->save();
 
-        return response()->json($custom);
+        $response = Customization::where('id', $custom->id)->with('type')->first();
+
+        return response()->json($response);
     }
 
     /**
@@ -104,6 +106,25 @@ class CustomizationController extends Controller
     public function show($id)
     {
         $custom = Customization::where('id', $id)->with('type')->first();
+
+
+        if ($custom) {
+            return response()->json($custom);
+        }
+
+        return response()->json('', 200);
+    }
+
+
+    /**
+     * Display all options by customization id.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function options($id)
+    {
+        $custom = Customization::where('id', $id)->with('options')->first();
 
 
         if ($custom) {

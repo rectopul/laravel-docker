@@ -1,3 +1,43 @@
+.productCustons
+    & .productType
+        &.selected
+            opacity .7
+            & > .card
+                border-color: #CF423C !important
+                &, & h3
+                    color: #CF423C !important
+
+.listOptionstoSelect
+    & > div
+        &.selected
+            opacity .7
+            & > .card
+                border-color: #CF423C !important
+                &, & h5
+                    color: #CF423C !important
+
+
+.productCustonsNv1
+    & .listCustomByType
+        & > div
+            & .card-body
+                cursor pointer
+            &.show
+                opacity .7
+                & > .card
+                    border-color: #CF423C !important
+                    &, & h6
+                        color: #CF423C !important
+
+.listOptionsByCustom
+    & > div
+        &.show
+            opacity .7
+            & > .card
+                border-color: #CF423C !important
+                &, & h5
+                    color: #CF423C !important
+
 .productOption
     & .card
         cursor pointer
@@ -17,7 +57,7 @@
     max-height 0
     transition max-height 0.5s cubic-bezier(0, 1, 0, 1)
     &.full
-        max-height 2000px
+        max-height 5000px
         transition max-height 1s ease-in-out
 .searchProductDesc
     font-size .75rem
@@ -69,3 +109,38 @@
     & .card
         height 220px
         margin-bottom: 15px
+
+.productInSearch
+    & .card
+        cursor pointer
+        &:hover
+            border-color red
+            color red
+            & img
+                opacity .7
+.productsFound
+    position absolute
+    width calc(100% - 30px)
+    display none
+    flex-direction column
+    background-color rgba(255,255,255,0.9)
+    top 40px
+    left 15px
+    z-index 9
+    border 1px solid #ccc
+    &.show
+        display flex
+    & > div
+        align-items center
+        padding 15px
+        cursor pointer
+        & > div
+            padding: 0 15px
+        &:hover
+            background-color #ccc
+        & span
+            display flex
+            align-items center
+            margin-left 15px
+        &:not(:last-child)
+            border-bottom 1px solid #ccc
