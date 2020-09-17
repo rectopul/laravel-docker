@@ -100,76 +100,50 @@ class ProductController extends Controller
 
         $childs = $request->input('children');
 
-        //return var_dump($childs);
+        if (empty($excludes['custons'])) return response()->json(['error' => 'Selecione ao menos uma customização']);
 
         if ($check > 0) {
             $product = Product::where('code', '=', $request->input('code'))->first();
 
-            $listOptions = [];
+            //destroy all custom
+            ProductOption::where('product_id', '=', $product->id)->delete();
 
-            //types
-            $types = $excludes['types'];
+            //get all options in this custom
+            $customizations = Option::whereNotIn('customization_id', $excludes['custons'])->get();
 
-            foreach ($types as $typeId) {
-                $opt = Option::whereHas('customization', function ($sq) use ($typeId) {
-                    $sq->where('type_id', '=', $typeId);
-                })->get();
+            //get all options if id has in list
+            $exceptions = Option::whereIn('id', $excludes['options'])->get();
 
-                foreach ($opt as $optId) {
-                    if (!in_array($optId->id, $listOptions)) {
-                        $listOptions[] = $optId->id;
-                    }
-                }
+            $allExceptions = [];
+
+            //merge all options
+            foreach ($customizations as $custom) {
+                $allExceptions[] = $custom;
             }
 
-            //Custons
-            $Custons = $excludes['custons'];
-
-            foreach ($Custons as $custon) {
-                $opt = Option::whereHas('customization', function ($sq) use ($custon) {
-                    $sq->where('id', '=', $custon);
-                })->get();
-
-                foreach ($opt as $optId) {
-                    if (!in_array($optId->id, $listOptions)) {
-                        $listOptions[] = $optId->id;
-                    }
-                }
+            foreach ($exceptions as $exception) {
+                $allExceptions[] = $exception;
             }
 
-            //options
-            $options = $excludes['options'];
+            foreach ($allExceptions as $key => $thisOption) {
 
-            foreach ($options as $option) {
-                $opt = Option::where('id', '=', $option)->get();
+                //create exclusion in product
+                $productCustomization = new ProductOption;
+                $productCustomization->option_id = $thisOption->id;
+                $productCustomization->product_id = $product->id;
 
-                foreach ($opt as $optId) {
-                    if (!in_array($optId->id, $listOptions)) {
-                        $listOptions[] = $optId->id;
-                    }
-                }
-            }
-
-            foreach ($listOptions as $key => $option_id) {
-                //check
-                $check = ProductOption::where('option_id', '=', $option_id)->count();
-
-                if ($check == 0) {
-                    $productCustomization = new ProductOption;
-                    $productCustomization->option_id = $option_id;
-                    $productCustomization->product_id = $product->id;
-
-                    //Save Custom
-                    $productCustomization->save();
-                }
+                //Save Custom
+                $productCustomization->save();
 
                 //children
 
                 foreach ($childs as $children) {
 
+                    //create Product
+
                     //check if product exist 
 
-                    $check_product = Product::where('name', '=', $children['name'])->first();
+                    $check_product = Product::where('code', '=', $children['code'])->first();
 
                     if ($check_product === null) {
                         $childrenProduct = new Product;
@@ -177,29 +151,37 @@ class ProductController extends Controller
                         $childrenProduct->description = $children['description'];
                         $childrenProduct->image = $children['image'];
                         $childrenProduct->code = $children['code'];
+                        $childrenProduct->parent_id = $product->id;
 
                         $childrenProduct->save();
 
                         //option
                         $productCustomization = new ProductOption;
-                        $productCustomization->option_id = $option_id;
+                        $productCustomization->option_id = $thisOption->id;
                         $productCustomization->product_id = $childrenProduct->id;
 
                         //Save Custom
                         $productCustomization->save();
                     } else {
+                        //update children product
+                        $check_product->name = $children['name'];
+                        $check_product->description = $children['description'];
+                        $check_product->image = $children['image'];
+                        $check_product->code = $children['code'];
+                        $check_product->parent_id = $product->id;
                         //option
                         $productCustomization = new ProductOption;
-                        $productCustomization->option_id = $option_id;
+                        $productCustomization->option_id = $thisOption->id;
                         $productCustomization->product_id = $check_product->id;
 
                         //Save Custom
                         $productCustomization->save();
+                        $check_product->save();
                     }
                 }
             }
 
-            $response = Product::where('code', '=', $request->input('code'))->with('options.option')->first();
+            $response = Product::where('code', '=', $request->input('code'))->with('options.option')->with('child')->first();
 
             return response()->json($response);
         }
@@ -212,54 +194,28 @@ class ProductController extends Controller
 
         $product->save();
 
-        $listOptions = [];
+        //get all options in this custom
+        $customizations = Option::whereNotIn('customization_id', $excludes['custons'])->get();
 
-        //types
-        $types = $excludes['types'];
+        //get all options if id has in list
+        $exceptions = Option::whereIn('id', $excludes['options'])->get();
 
-        foreach ($types as $typeId) {
-            $opt = Option::whereHas('customization', function ($sq) use ($typeId) {
-                $sq->where('type_id', '=', $typeId);
-            })->get();
+        $allExceptions = [];
 
-            foreach ($opt as $optId) {
-                if (!in_array($optId->id, $listOptions)) {
-                    $listOptions[] = $optId->id;
-                }
-            }
+        //merge all options
+        foreach ($customizations as $custom) {
+            $allExceptions[] = $custom;
         }
 
-        //Custons
-        $Custons = $excludes['custons'];
-
-        foreach ($Custons as $custon) {
-            $opt = Option::whereHas('customization', function ($sq) use ($custon) {
-                $sq->where('id', '=', $custon);
-            })->get();
-
-            foreach ($opt as $optId) {
-                if (!in_array($optId->id, $listOptions)) {
-                    $listOptions[] = $optId->id;
-                }
-            }
+        foreach ($exceptions as $exception) {
+            $allExceptions[] = $exception;
         }
 
-        //options
-        $options = $excludes['options'];
 
-        foreach ($options as $option) {
-            $opt = Option::where('id', '=', $option)->get();
-
-            foreach ($opt as $optId) {
-                if (!in_array($optId->id, $listOptions)) {
-                    $listOptions[] = $optId->id;
-                }
-            }
-        }
-
-        foreach ($listOptions as $key => $option_id) {
+        //insert exclusions and children
+        foreach ($allExceptions as $key => $thisOption) {
             $productCustomization = new ProductOption;
-            $productCustomization->option_id = $option_id;
+            $productCustomization->option_id = $thisOption->id;
             $productCustomization->product_id = $product->id;
 
             //Save Custom
@@ -267,8 +223,10 @@ class ProductController extends Controller
 
             foreach ($childs as $children) {
 
-                $check_product = Product::where('name', '=', $children['name'])->first();
+                $check_product = Product::where('code', '=', $children['code'])->first();
 
+
+                //check if children exist
                 if ($check_product === null) {
 
                     $childrenProduct = new Product;
@@ -276,28 +234,37 @@ class ProductController extends Controller
                     $childrenProduct->description = $children['description'];
                     $childrenProduct->image = $children['image'];
                     $childrenProduct->code = $children['code'];
+                    $childrenProduct->parent_id = $product->id;
 
                     $childrenProduct->save();
 
-                    //option
+                    //option insert options in exclusions
                     $productCustomization = new ProductOption;
-                    $productCustomization->option_id = $option_id;
+                    $productCustomization->option_id = $thisOption->id;
                     $productCustomization->product_id = $childrenProduct->id;
 
                     //Save Custom
                     $productCustomization->save();
                 } else {
+                    //update-childrens
+                    $check_product->name = $children['name'];
+                    $check_product->description = $children['description'];
+                    $check_product->image = $children['image'];
+                    $check_product->code = $children['code'];
+                    $check_product->parent_id = $product->id;
                     //option
                     $productCustomization = new ProductOption;
-                    $productCustomization->option_id = $option_id;
+                    $productCustomization->option_id = $thisOption->id;
                     $productCustomization->product_id = $check_product->id;
 
                     //Save Custom
+                    $check_product->save();
+                    $productCustomization->save();
                 }
             }
         }
 
-        $response = Product::where('code', '=', $request->input('code'))->with('options.option')->get();
+        $response = Product::where('code', '=', $request->input('code'))->with('options.option')->with('child')->get();
 
         return response()->json($response);
     }
@@ -331,6 +298,7 @@ class ProductController extends Controller
 
         $products = Product::where('code', '=', $code)
             ->with('options')
+            ->with('child')
             ->first();
 
         $messages['error']  = 'product not found';
@@ -367,10 +335,10 @@ class ProductController extends Controller
 
             $customization->options = $options;
 
-            if (!empty($options)) $returned[] = $customization;
+            if (!empty($options) && $customization->type_id > 1) $returned[] = $customization;
         }
 
-        return response()->json($returned);
+        return response()->json(['custom' => $returned, 'child' => $products->child]);
     }
 
     /**
